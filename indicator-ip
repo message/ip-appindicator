@@ -1,0 +1,131 @@
+#!/usr/bin/python3
+# coding: utf-8
+#
+# A simple indicator applet displaying cpu and memory information
+#
+# Author: Alex Eftimie <alex@eftimie.ro>
+# Fork Author: fossfreedom <foss.freedom@gmail.com>
+# Original Homepage: http://launchpad.net/indicator-sysmonitor
+# Fork Homepage: https://github.com/fossfreedom/indicator-sysmonitor
+# License: GPL v3
+#
+import tempfile
+from threading import Event, Thread
+import urllib3
+import time
+import os
+from gettext import gettext as _
+import json
+import gi
+
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import AppIndicator3 as appindicator
+from gi.repository import GLib, Gtk
+
+GLib.threads_init()
+
+
+class IndicatorIP(object):
+    def __init__(self):
+        self.fetcher = IPFetcher(self)
+
+        fn, self.tindicator = tempfile.mkstemp(suffix=".svg")
+
+        with open(self.tindicator, "w") as f:
+            svg = '<?xml version="1.0" encoding="UTF-8" \
+                        standalone="no"?><svg id="empty" xmlns="http://www.w3.org/2000/svg" \
+                        height="22" width="1" version="1.0" \
+                        xmlns:xlink="http://www.w3.org/1999/xlink"></svg>'
+            f.write(svg)
+            f.close()
+
+        self.indicator = appindicator.Indicator.new("indicator-ip", self.tindicator,
+                                                    appindicator.IndicatorCategory.SYSTEM_SERVICES)
+        self.indicator.set_ordering_index(1)
+
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+        self.indicator.set_label("Init...", "")
+
+        self._create_menu()
+
+        self.alive = Event()
+        self.alive.set()
+
+        self.fetcher.start()
+
+    def _create_menu(self):
+        """Creates the main menu and shows it."""
+        # create menu {{{
+        menu = Gtk.Menu()
+
+        # add preference menu item
+        exit_menu = Gtk.MenuItem(_('Quit'))
+        exit_menu.connect('activate', self.on_exit)
+        menu.add(exit_menu)
+
+        menu.show_all()
+        self.indicator.set_menu(menu)
+        # }}} menu done!
+
+    # def update_indicator_guide(self):
+    #     self.indicator.set_property("label-guide", guide)
+
+    def update(self, data):
+        if data is None:
+            self.indicator.set_icon_full(self.tindicator, "")
+            self.indicator.set_label("Failed to fetch", "")
+            self.indicator.set_title("Failed to fetch")
+        else:
+            country = data["country"].strip()
+            ip = data["ip"].strip()
+            path = "/usr/lib/indicator-ip/flags/" + country + ".png"
+
+            if not os.path.isfile(path):
+                path = self.tindicator
+
+            self.indicator.set_icon_full(path, country)
+            self.indicator.set_label(ip, "")
+            self.indicator.set_title(ip)
+
+    def on_exit(self, event=None, data=None):
+        # cleanup temporary indicator icon
+        os.remove(self.tindicator)
+        self.alive.clear()  # DM: why bother with Event() ???
+
+        try:
+            Gtk.main_quit()
+        except RuntimeError:
+            pass
+
+
+class IPFetcher(Thread):
+    """It recollects the info about the sensors."""
+
+    def __init__(self, parent):
+        Thread.__init__(self)
+        self._parent = parent
+
+    def fetch(self):
+        try:
+            http = urllib3.PoolManager()
+            response = http.request('GET', 'https://ipinfo.io', timeout=1.0)
+            tree = json.loads(response.data.decode('utf-8'))
+
+            return tree
+        except:
+            return None
+
+    def run(self):
+        """It is the main loop."""
+        while self._parent.alive.isSet():
+            self._parent.update(self.fetch())
+            time.sleep(2)
+
+
+if __name__ == "__main__":
+    # setup an instance with config
+    app = IndicatorIP()
+    try:
+        Gtk.main()
+    except KeyboardInterrupt:
+        app.on_exit()

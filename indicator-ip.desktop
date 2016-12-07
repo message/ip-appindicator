@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=IP AppIndicator
+Comment=Shows public ip with flag
+Exec=indicator-ip
+Terminal=false
+StartupNotify=true
+Type=Application
+Categories=Utility;
+Icon=gnome-system-monitor
