@@ -3,18 +3,18 @@ DESTDIR=/usr
 all:
 
 install:
-	mkdir ${DESTDIR}/lib/indicator-ip
-	cp indicator-ip ${DESTDIR}/lib/indicator-ip
-	cp -R flags ${DESTDIR}/lib/indicator-ip
-	ln -s ${DESTDIR}/lib/indicator-ip/indicator-ip ${DESTDIR}/bin/indicator-ip
-	cp indicator-ip.desktop ${DESTDIR}/share/applications/
+	mkdir ${DESTDIR}/lib/ip-appindicator
+	cp ip-appindicator ${DESTDIR}/lib/ip-appindicator
+	cp -R flags ${DESTDIR}/lib/ip-appindicator
+	ln -s ${DESTDIR}/lib/ip-appindicator/ip-appindicator ${DESTDIR}/bin/ip-appindicator
+	cp ip-appindicator.desktop ${DESTDIR}/share/applications/
 	
 clean:
 	rm -rf ../*.xz ../*.deb ../*.tar.gz ../*.changes ../*.dsc ../*.upload ../*.build ../*.cdbs-config_list
 	
 uninstall:
-	rm -rf ${DESTDIR}/lib/indicator-ip
-	rm ${DESTDIR}/bin/indicator-ip
-	rm ${DESTDIR}/share/applications/indicator-ip.desktop
+	rm -rf ${DESTDIR}/lib/ip-appindicator
+	rm ${DESTDIR}/bin/ip-appindicator
+	rm ${DESTDIR}/share/applications/ip-appindicator.desktop
 
 .PHONY: clean install all

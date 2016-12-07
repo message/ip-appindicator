@@ -1,29 +1,20 @@
 #!/usr/bin/python3
 # coding: utf-8
-#
-# A simple indicator applet displaying cpu and memory information
-#
-# Author: Alex Eftimie <alex@eftimie.ro>
-# Fork Author: fossfreedom <foss.freedom@gmail.com>
-# Original Homepage: http://launchpad.net/indicator-sysmonitor
-# Fork Homepage: https://github.com/fossfreedom/indicator-sysmonitor
-# License: GPL v3
-#
+import gi
+gi.require_version('AppIndicator3', '0.1')
+
 import tempfile
-from threading import Event, Thread
 import urllib3
 import time
 import os
-from gettext import gettext as _
 import json
-import gi
 
-gi.require_version('AppIndicator3', '0.1')
 from gi.repository import AppIndicator3 as appindicator
 from gi.repository import GLib, Gtk
 
-GLib.threads_init()
+from threading import Event, Thread
 
+GLib.threads_init()
 
 class IndicatorIP(object):
     def __init__(self):
@@ -39,7 +30,7 @@ class IndicatorIP(object):
             f.write(svg)
             f.close()
 
-        self.indicator = appindicator.Indicator.new("indicator-ip", self.tindicator,
+        self.indicator = appindicator.Indicator.new("ip-appindicator", self.tindicator,
                                                     appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.indicator.set_ordering_index(1)
 
@@ -59,7 +50,7 @@ class IndicatorIP(object):
         menu = Gtk.Menu()
 
         # add preference menu item
-        exit_menu = Gtk.MenuItem(_('Quit'))
+        exit_menu = Gtk.MenuItem('Quit')
         exit_menu.connect('activate', self.on_exit)
         menu.add(exit_menu)
 
@@ -78,7 +69,7 @@ class IndicatorIP(object):
         else:
             country = data["country"].strip()
             ip = data["ip"].strip()
-            path = "/usr/lib/indicator-ip/flags/" + country + ".png"
+            path = "/usr/lib/ip-appindicator/flags/" + country + ".png"
 
             if not os.path.isfile(path):
                 path = self.tindicator

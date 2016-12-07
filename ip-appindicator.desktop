@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=IP AppIndicator
-Comment=Shows public ip with flag
+Comment=Shows public ip with country flag
 Exec=indicator-ip
 Terminal=false
 StartupNotify=true
